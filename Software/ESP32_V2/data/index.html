@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="Automa Tic">
+    <title>Parque Control</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
+
+    <link rel="shortcut icon" href="image-park.jpeg" type="image/x-icon">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="index.css">
+
+    <style>
+        * {
+            font-family: "Roboto", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        body {
+            /* Define a imagem de fundo */
+            background-image: url('./image-park.jpeg');
+
+            /* Torna a imagem responsiva */
+            background-size: cover;
+
+            /* Garante que a imagem cubra toda a área da página */
+            background-repeat: no-repeat;
+
+            /* Centraliza a imagem */
+            background-position: center;
+
+            /* Define a cor de fundo transparente */
+            background-color: rgba(255, 255, 255, 0.5);
+            /* Ajuste os valores RGBA conforme necessário */
+
+            /* Adiciona um fallback para navegadores mais antigos */
+            background-blend-mode: overlay;
+        }
+    </style>
+</head>
+
+
+<body class="mode-light" style="background-image: url('./im.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-color: rgba(255, 255, 255, 0.5); 
+    background-blend-mode: overlay; 
+    background-attachment: fixed; ">
+
+    <main>
+        <section id="parque1" class="mt-5">
+            <h3 class="text-center text-white">Parque-1</h3>
+            <div class="row justify-content-evenly mb-4">
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p1Image1" src="vaga-livre.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº1</h4>
+                            <h5 id="p1Vaga1" class="card-text text-muted text-end">-----</h5>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p1Vaga1LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p1Image2" src="vaga-ocupada.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº2</h4>
+                            <h5 id="p1Vaga2" class="card-text text-muted text-end">-----</h5>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p1Vaga2LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-evenly my-4">
+
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p1Image4" src="vaga-ocupada.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº3 - Especial</h4>
+                            <div class="d-flex justify-content-between">
+                                <h5 id="p1Vaga4" class="card-text text-muted text-end">-----</h5>
+                                <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                    <button id="btnOpenReservation1" type="button"
+                                        class="btn btn-outline-primary">Abrir</button>
+                                    <button id="btnReservation1" type="button" class="btn btn-outline-primary"
+                                        data-bs-toggle="modal" data-bs-target="#exampleModal1"
+                                        data-bs-whatever="@mdo">Reservar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p1Vaga4LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="parque2 mt-5">
+            <h3 class="text-center text-white">Parque-2</h3>
+            <div class="row justify-content-evenly mb-4">
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p2Image1" src="vaga-livre.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº1</h4>
+                            <h5 id="p2Vaga1" class="card-text text-muted text-end">-----</h5>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p2Vaga1LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p2Image2" src="vaga-ocupada.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº2</h4>
+                            <h5 id="p2Vaga2" class="card-text text-muted text-end">-----</h5>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p2Vaga2LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-evenly my-4">
+               
+                <div class="col-10 col-md-4 mt-4">
+                    <div class="card h-100">
+                        <img id="p2Image4" src="vaga-livre.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h4 class="card-title">Vaga Nº3 - Especial</h4>
+                            <div class="d-flex justify-content-between">
+                                <h5 id="p2Vaga4" class="card-text text-muted text-end">-----</h5>
+                                <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                    <button id="btnOpenReservation2" type="button"
+                                        class="btn btn-outline-primary">Abrir</button>
+                                    <button id="btnReservation2" type="button" class="btn btn-outline-primary"
+                                        data-bs-toggle="modal" data-bs-target="#exampleModal2"
+                                        data-bs-whatever="@mdo">Reservar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">Última actualização: <span id="p2Vaga4LastUpdate"></span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <div class="container">
+            <footer class="py-3 my-4">
+                <p class="text-center border-top pt-3 ">&copy; 2024 - AUTOMA TIC</p>
+            </footer>
+        </div>
+    </main>
+
+
+    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel1">P1- Agendar Vaga 3 para os próximos 2 minutos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" class="form-control">
+                        <div class="mb-3">
+                            <label for="username1" class="col-form-label">Username:</label>
+                            <input type="text" class="form-control" name="username1" id="username1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password1" class="col-form-label">Password:</label>
+                            <input type="password" class="form-control" name="password1" id="password1">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="btnReserve1" type="button" class="btn btn-primary"
+                        data-bs-dismiss="modal">Agendar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel2">P2- Agendar Vaga 3 para os próximos 2 minutos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" class="form-control" id="">
+                        <div class="mb-3">
+                            <label for="username2" class="col-form-label">Username:</label>
+                            <input type="text" class="form-control" name="username2" id="username2" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password2" class="col-form-label">Password:</label>
+                            <input type="password" class="form-control" name="password2" id="password2" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="btnReserve2" type="button" class="btn btn-primary"
+                        data-bs-dismiss="modal">Agendar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="bootstrap.bundle.min.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>
