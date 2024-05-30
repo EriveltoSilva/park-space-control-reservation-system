@@ -232,7 +232,10 @@ bool hasCar(byte num) {
 
 bool hasCar(Ultrasonic ultrassonic, String text) {
   int distance = ultrassonic.read();
-  Serial.println("###Vaga" + text + ":" + String(distance));
+  
+  if(DEBUG) 
+    Serial.println("###Vaga" + text + ":" + String(distance));
+  
   if (text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("EXIT2"))
     return (distance > 0 && distance < 14);
   

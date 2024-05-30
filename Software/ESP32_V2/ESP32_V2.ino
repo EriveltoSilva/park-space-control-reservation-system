@@ -1,20 +1,20 @@
 /**************************************************
-    AUTHOR: Otlevire
-    FOR: RUI e Colega
-    Universidade Metodista
-    CREATED AT: 10-09-2023.
+    AUTHOR: Erivelto Silva
+    FOR: Barros
+    ISPB
+    CREATED AT: 28-05-2024.
 
     Principais Componentes usados:
       *** 1-ESP32 (1)
 *************************************************/
 
 ////////////////// Labraries Used  ////////////////
-#include <WiFi.h>                 /////
-#include "SPIFFS.h"               /////
-#include <AsyncTCP.h>             /////
-#include <ArduinoJson.h>          /////
-#include <ESPAsyncWebServer.h>    /////
-#include <IOXhop_FirebaseESP32.h> //importa biblioteca para esp32 se comunicar com firebase
+#include <WiFi.h>                             /////
+#include "SPIFFS.h"                           /////
+#include <AsyncTCP.h>                         /////
+#include <ArduinoJson.h>                      /////
+#include <ESPAsyncWebServer.h>                /////
+#include <IOXhop_FirebaseESP32.h>             /////importa biblioteca para esp32 se comunicar com firebase
 ///////////////////////////////////////////////////
 
 ////////////////  PIN CONFIGURATIONS //////////////
