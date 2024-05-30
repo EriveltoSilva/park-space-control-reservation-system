@@ -1,9 +1,8 @@
 /**************************************************
-    AUTHOR: Otlevire
-    FOR: RUI e Colega
-    Universidade Metodista
-    CREATED AT: 10-09-2023.
-
+    AUTHOR: Erivelto Silva
+    FOR: Barros
+    
+    CREATED AT: 25-05-2024.
 
   Principais Componentes usados:
  *** 1- ARDUINO MEGA 2560 (1)
@@ -31,7 +30,7 @@
 #include <Ultrasonic.h>
 #include <LiquidCrystal_I2C.h>
 
-#define DEBUG true
+#define DEBUG false
 
 #define LED 13
 //----------------- PARQUE1 ------------------
@@ -57,8 +56,8 @@
 #define TRIGGER_EXIT1 8
 #define ECHO_EXIT1 9
 
-#define TRIGGER_EXIT2 10
-#define ECHO_EXIT2 11
+#define TRIGGER_EXIT2 6
+#define ECHO_EXIT2 7
 
 #define BUTTON_ENTRANCE1 2
 #define BUTTON_ENTRANCE2 3
@@ -105,8 +104,8 @@ Servo servoReservation1;
 Servo servoEntrance2;
 Servo servoExit2;
 Servo servoReservation2;
-LiquidCrystal_I2C lcd2(0x27, 16, 2);  // set the LCD address to 0x26 for a 16X04
-LiquidCrystal_I2C lcd1(0x26, 16, 2);  // set the LCD address to 0x27 for a 16x02
+LiquidCrystal_I2C lcd1(0x27, 16, 2);  // set the LCD address to 0x27 for a 16x02
+LiquidCrystal_I2C lcd2(0x26, 16, 2);  // set the LCD address to 0x26 for a 16X04
 Ultrasonic ultrassonicExit1(TRIGGER_EXIT1, ECHO_EXIT1);
 Ultrasonic ultrassonicExit2(TRIGGER_EXIT2, ECHO_EXIT2);
 
@@ -231,6 +230,15 @@ bool hasCar(byte num) {
   return (num > 50);
 }
 
+bool hasCar(Ultrasonic ultrassonic, String text) {
+  int distance = ultrassonic.read();
+  Serial.println("###Vaga" + text + ":" + String(distance));
+  if (text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("EXIT2"))
+    return (distance > 0 && distance < 14);
+  
+  if (text.equalsIgnoreCase("RESERVATION1") || text.equalsIgnoreCase("RESERVATION2"))
+    return (distance > 0 && distance < 7);
+}
 
 
 void openWithTimer(Servo servo, String text) {
@@ -270,8 +278,11 @@ void verifyTimeToCloseExit() {
 }
 
 void openServo(Servo servo, String text) {
-  if (text.equalsIgnoreCase("RESERVATION1") || text.equalsIgnoreCase("ENTRANCE1") || text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("RESERVATION2") || text.equalsIgnoreCase("EXIT2"))
+  if (text.equalsIgnoreCase("RESERVATION1") || text.equalsIgnoreCase("ENTRANCE1") || 
+      text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("EXIT2"))
     servo.write(90);
+  else if (text.equalsIgnoreCase("RESERVATION2"))
+    servo.write(180);
   else if (text.equalsIgnoreCase("ENTRANCE2"))
     servo.write(145);
 }
@@ -279,8 +290,10 @@ void openServo(Servo servo, String text) {
 void closeServo(Servo servo, String text) {
   if (text.equalsIgnoreCase("RESERVATION1") || text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("EXIT2"))
     servo.write(180);
-  else if (text.equalsIgnoreCase("ENTRANCE1") || text.equalsIgnoreCase("RESERVATION2"))
+  else if (text.equalsIgnoreCase("ENTRANCE1"))
     servo.write(0);
+  else if (text.equalsIgnoreCase("RESERVATION2"))
+    servo.write(90);
   else if (text.equalsIgnoreCase("ENTRANCE2"))
     servo.write(45);
 }
@@ -317,10 +330,11 @@ String readSensors() {
   p2Vaga2 = hasCar(map(ldr5, 0, 1023, 0, 100));
   p2Reservation = hasCar(map(analogRead(P2_RESERVATION), 0, 1023, 0, 100));
 
-  if (p1Reservation)
-    openWithTimer(servoExit1, "EXIT1");
 
-  if (p2Reservation)
+  if (hasCar(ultrassonicExit1, "EXIT1"))
+    openWithTimer(servoExit1, "EXIT1");
+  
+  if (hasCar(ultrassonicExit2, "EXIT2"))
     openWithTimer(servoExit2, "EXIT2");
 
   if(DEBUG)
@@ -330,7 +344,7 @@ String readSensors() {
     Serial.println("V2:" + String(ldr2) + "(" + p1Vaga2 + ")");
     Serial.println("R1:" + String(p1Reservation));
 
-    // Serial.println("---------------------- Dados P2 -----------------------");
+    Serial.println("---------------------- Dados P2 -----------------------");
     Serial.println("V1:" + String(ldr4) + "(" + p2Vaga1 + ")");
     Serial.println("V2:" + String(ldr5) + "(" + p2Vaga2 + ")");
     Serial.println("R2:" + String(p2Reservation));
