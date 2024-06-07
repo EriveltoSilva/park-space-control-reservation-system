@@ -285,7 +285,7 @@ void openServo(Servo servo, String text) {
       text.equalsIgnoreCase("EXIT1") || text.equalsIgnoreCase("EXIT2"))
     servo.write(90);
   else if (text.equalsIgnoreCase("RESERVATION2"))
-    servo.write(180);
+    servo.write(90);
   else if (text.equalsIgnoreCase("ENTRANCE2"))
     servo.write(145);
 }
@@ -296,7 +296,7 @@ void closeServo(Servo servo, String text) {
   else if (text.equalsIgnoreCase("ENTRANCE1"))
     servo.write(0);
   else if (text.equalsIgnoreCase("RESERVATION2"))
-    servo.write(90);
+    servo.write(180);
   else if (text.equalsIgnoreCase("ENTRANCE2"))
     servo.write(45);
 }
