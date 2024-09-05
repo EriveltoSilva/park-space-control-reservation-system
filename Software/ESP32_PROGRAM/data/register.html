@@ -49,32 +49,37 @@
     <div class="signin">
 
       <div class="content">
-        <h2>Cadastrar de Novo Usuário</h2>
+        <h2>Cadastrar Novo Usuário</h2>
         <form class="form" action="/make-register" method="post">
-          
+
           <div class="inputBox">
             <input type="text" name="username" id="username" required>
-            <i>Username Novo Usuário</i>
+            <i>Username - Novo Usuário</i>
           </div>
 
           <div class="inputBox">
-            <input type="password" name="passwordUser" id="passwordUser" required>
-            <i>Palavra-passe Novo Usuário</i>
-          </div>
-          
-          <div class="inputBox">
-            <input type="password" name="passwordAdmin" id="passwordAdmin" required>
-            <i>Palavra-passe Admin</i>
-          </div>
-          
-          <div class="inputBox">
-            <a href="login.html">Voltar ao login</a>
+            <input type="text" name="vehicleBrand" id="vehicleBrand" required>
+            <i>Marca da Viatura</i>
           </div>
 
-          <!-- <div class="links">
-            <a href="#">Forgot Password</a> 
-            <a href="#">Signup</a>
-          </div> -->
+          <div class="inputBox">
+            <input type="text" name="licensePlate" id="licensePlate" required>
+            <i>Número da Matricula</i>
+          </div>
+
+          <div class="inputBox">
+            <input type="password" name="userPassword" id="userPassword" required>
+            <i>Palavra-passe - Novo Usuário</i>
+          </div>
+
+          <div class="inputBox">
+            <input type="password" name="adminPassword" id="adminPassword" required>
+            <i>Palavra-passe - Admin</i>
+          </div>
+
+          <div class="inputBox">
+            <a href="/login" class="text-green">Voltar ao login</a>
+          </div>
 
           <div class="inputBox">
             <input type="submit" id="btn" value="Registrar Usuário">

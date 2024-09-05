@@ -180,3 +180,7 @@ input[type="submit"]:active
     height: calc(20vw - 2px);
   }
 }
+
+.text-green {
+  color: #00ff00;
+}
