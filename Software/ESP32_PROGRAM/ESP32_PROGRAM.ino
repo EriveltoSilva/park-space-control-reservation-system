@@ -4,52 +4,71 @@
     ISPB.
     CREATED AT: 28-05-2024.
 *************************************************/
+#include "esp_task_wdt.h"
 
 ////////////////// Libraries Used  ////////////////
-#include <WiFi.h>                             /////
-#include "SPIFFS.h"                           /////
-#include <AsyncTCP.h>                         /////
-#include <ArduinoJson.h>                      /////
-#include <ESPAsyncWebServer.h>                /////
-#include <IOXhop_FirebaseESP32.h>             /////
+#include <WiFi.h>                  /////
+#include "SPIFFS.h"                /////
+#include <AsyncTCP.h>              /////
+#include <ArduinoJson.h>           /////
+#include <ESPAsyncWebServer.h>     /////
+#include <IOXhop_FirebaseESP32.h>  /////
 ///////////////////////////////////////////////////
 
 ////////////////  PIN CONFIGURATIONS //////////////
-#define LED 2                                 /////
-#define RXD2 16 // RX da serial do ESP32      /////
-#define TXD2 17 // TX da serial do ESP32      /////
+#define LED 2                                                                                              /////
+#define RXD2 16                                                                                            // RX da serial do ESP32      /////
+#define TXD2 17                                                                                            // TX da serial do ESP32      /////
 #define FIREBASE_HOST "https://park-space-control-system-default-rtdb.europe-west1.firebasedatabase.app/"  // substitua "Link_do_seu_banco_de_dados" pelo link do seu banco de dados
-#define FIREBASE_AUTH "oVTZYyRDQLbLFnYvYV1EIim5PqQTTLMpAvTUVvAa"              // substitua "Senha_do_seu_banco_de_dados" pela senha do seu banco de dados
-#define TIME_RESERVATION 120000               /////
+#define FIREBASE_AUTH "oVTZYyRDQLbLFnYvYV1EIim5PqQTTLMpAvTUVvAa"                                           // substitua "Senha_do_seu_banco_de_dados" pela senha do seu banco de dados
+#define TIME_RESERVATION 120000                                                                            /////
 ///////////////////////////////////////////////////
 
 /////////////  NETWORK CONFIGURATIONS /////////////
-#define SSID "PARK"                           /////
-#define PASSWORD "123456789"                  /////
+#define SSID "PARK"           /////
+#define PASSWORD "123456789"  /////
 ///////////////////////////////////////////////////
 
 ////////// VARIABLES USED IN THE PROJECT //////////
-bool flagReserve1 = false;                    /////
-bool flagReserve2 = false;                    /////
-String dataStored = "D*0*0*0*0*0*0*";         /////
-String userReservation1 = "";                 /////
-String userReservation2 = "";                 /////
-unsigned long int timerReservation1 = 0;      /////
-unsigned long int timerReservation2 = 0;      /////
-unsigned long int timeDelay = 0;              /////
+bool flagReserve1 = false;                  /////
+bool flagReserve2 = false;                  /////
+String dataStored = "D*0*0*0*0*0*0*";       /////
+String userReservation1 = "";               /////
+String userReservation2 = "";               /////
+unsigned long int timerReservation1 = 0;    /////
+unsigned long int timerReservation2 = 0;    /////
+unsigned long int endTimeReservation1 = 0;  /////
+unsigned long int endTimeReservation2 = 0;  /////
+unsigned long int timeMinute = 0;           /////
+unsigned long int timeDelay = 0;            /////
+///////////////////////////////////////////////////
+
+////////// VARIABLES USED IN REGISTER /////////////
+bool flagRegisterUser = false;
+bool flagRegisterReserve1 = false;
+bool flagRegisterReserve2 = false;
+
+String registerUsername;
+String registerLicensePlate;
+String registerVehicleBrand;
+String registerPassword;
+
+int registerTimeReserve;
+
+
 ///////////////////////////////////////////////////
 
 ///////////////  OBJECTS DEFINITIONS  /////////////
-AsyncWebServer server(80);                    /////
-HardwareSerial arduino(2);                    /////
+AsyncWebServer server(80);  /////
+HardwareSerial arduino(2);  /////
 ///////////////////////////////////////////////////
 
 ////////////// FUNCTION DEFINITIONS  //////////////
-void wifiConfig();                            /////
-void initConfig();                            /////
-bool initMyFS();                              /////
-bool isUser(String email, String password);   /////
-void serverHandlers();                        /////
+void wifiConfig();                           /////
+void initConfig();                           /////
+bool initMyFS();                             /////
+bool isUser(String email, String password);  /////
+void serverHandlers();                       /////
 void saveUserFirebase(String email, String password);
 ///////////////////////////////////////////////////
 
@@ -72,27 +91,105 @@ void setup() {
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   serverHandlers();
   Serial.println(" ##-------SISTEMA DE DOMÓTICA!--------##");
+  // esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
+}
+void verifyMinute() {
+  if (millis() - timeMinute > 60000) {
+    timeMinute = millis();
+    flagReserve1 = Firebase.getInt("/reserve1/time");
+    flagReserve2 = Firebase.getInt("/reserve2/time");
+  }
+}
+
+void verifyRegister() {
+  if (flagRegisterReserve1) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&& register reservation1 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterReserve1 = false;
+    flagReserve1 = true;
+    Firebase.setString("/reserve1/user", registerUsername);
+    Firebase.setInt("/reserve1/time", registerTimeReserve);
+    Firebase.setString("/reserve1/vehicleBrand", "toyota");
+    Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
+
+    Firebase.pushString("/reserves/user", registerUsername);
+    Firebase.pushInt("/reserves/time", registerTimeReserve);
+    Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
+    Firebase.pushString("/reserves/licensePlate", registerLicensePlate);
+
+    userReservation1 = registerUsername;
+    timerReservation1 = millis();
+    endTimeReservation1 = registerTimeReserve;
+    cleanRegisterFieldS();
+    return;
+  }
+  if (flagRegisterReserve2) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&& register reservation2 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterReserve2 = false;
+    flagReserve2 = true;
+    Firebase.setString("/reserve2/user", registerUsername);
+    Firebase.setInt("/reserve2/time", registerTimeReserve);
+    Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
+    Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
+
+    Firebase.pushString("/reserves/user", registerUsername);
+    Firebase.pushInt("/reserves/time", registerTimeReserve);
+    Firebase.setString("/reserve1/vehicleBrand", "toyota");
+    Firebase.pushString("/reserves/licensePlate", registerLicensePlate);
+
+    userReservation2 = registerUsername;
+    timerReservation2 = millis();
+    endTimeReservation2 = registerTimeReserve;
+    cleanRegisterFieldS();
+    return;
+  }
+
+  if(flagRegisterUser) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& register user &&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterUser = false;
+    Firebase.setString("/users/" + registerUsername + "/password", registerPassword);
+    Firebase.setString("/users/" + registerUsername + "/licensePlate", registerLicensePlate);
+    Firebase.setString("/users/" + registerUsername + "/vehicleBrand", registerVehicleBrand);
+    cleanRegisterFieldS();
+  }
 }
 
 /////////////////////////////////////////////////////////////////
 void loop() {
+  verifyMinute();
   verifyTimeReservation();
+  verifyRegister();
+
   if (millis() - timeDelay > 800) {
     timeDelay = millis();
     askData();
     String dataReceived = receiveData();
-    if (dataReceived != "") 
-    {
+    if (dataReceived != "") {
       dataStored = dataReceived;
 
       Serial.println("--> RECEBIDO DO ARDUINO:" + dataStored);
-      unsigned long time1 = 0;
-      unsigned long time2 = 0;
+      long time1 = 0;
+      long time2 = 0;
       if (flagReserve1)
-        time1 = (TIME_RESERVATION - (millis() - timerReservation1)) / 1000;
+      {
+        time1 = (endTimeReservation1 - (millis() - timerReservation1)) / 1000;
+        if(time1<=0) //tempo de reserva acabou
+        {
+          time1=0;
+          Firebase.setInt("/reserve1/time", 0);
+          flagReserve1=false;
+        }
+      }
 
       if (flagReserve2)
-        time2 = (TIME_RESERVATION - (millis() - timerReservation2)) / 1000;
+      {
+        time2 = (endTimeReservation2 - (millis() - timerReservation2)) / 1000;
+        if(time2<=0) //tempo de reserva acabou
+        {
+          time2=0;
+          Firebase.setInt("/reserve2/time", 0);
+          flagReserve2=false;
+        }
+      }  
 
       dataStored.replace("\n", "");
       dataStored.replace("\r", "");
@@ -174,10 +271,11 @@ bool initMyFS() {
 }
 
 void verifyTimeReservation() {
-  if ((millis() - timerReservation1) > 120000 && flagReserve1) {
+  if ((millis() - timerReservation1) > endTimeReservation1 && flagReserve1) {
     flagReserve1 = false;
     userReservation1 = "";
     arduino.println("y");
+    Firebase.setInt("reserve1/time", 0);
     Serial.println("################################TEMPO DA RESERVA 1 EXPIROU ########################################");
   }
 
@@ -190,12 +288,27 @@ void verifyTimeReservation() {
 }
 
 bool isUser(String username, String password) {
-  String passwordReturned = Firebase.getString("/users/" + username+"/password");
+  String passwordReturned = Firebase.getString("/users/" + username + "/password");
   return (passwordReturned.equals(password));
 }
 
+bool isCarOwner(String username, String licensePlate) {
+  String licensePlateReturned = Firebase.getString("/users/" + username + "/licensePlate");
+  return (licensePlateReturned.equals(licensePlate));
+}
+
+
 void saveUserFirebase(String username, String password) {
   Firebase.setString("/users/" + username, password);
+}
+
+////////////////////////////////////////////////////////////////////////
+void cleanRegisterFieldS() {
+  registerUsername = "";
+  registerLicensePlate = "";
+  registerVehicleBrand = "";
+  registerPassword = "";
+  registerTimeReserve = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -288,21 +401,24 @@ void serverHandlers() {
       Serial.println("---> Erro... Parametros de Registro Incompletos!\nRedirecionando para ----> register.html");
       request->redirect("/register");
     } else {
-      String username = request->getParam("username", true)->value();
-      String vehicleBrand = request->getParam("vehicleBrand", true)->value();
-      String licensePlate = request->getParam("licensePlate", true)->value();
-      String userPassword = request->getParam("userPassword", true)->value();
+      registerUsername = request->getParam("username", true)->value();
+      registerVehicleBrand = request->getParam("vehicleBrand", true)->value();
+      registerLicensePlate = request->getParam("licensePlate", true)->value();
+      registerPassword = request->getParam("userPassword", true)->value();
       String adminPassword = request->getParam("adminPassword", true)->value();
-      
-      String vehicle = vehicleBrand + " | " + licensePlate;
-      
+
+      // String vehicle = vehicleBrand + " | " + licensePlate;
+
       if (adminPassword.equals("otlevire")) {
         Serial.println("--->Admin Válido! Salvando dados do novo usuario no Firebase...");
-        Firebase.setString("/users/" + username+"/password", userPassword);
-        Firebase.setString("/users/" + username+"/vehicle", vehicle);
+        flagRegisterUser = true;
+        // Firebase.setString("/users/" + username + "/password", userPassword);
+        // Firebase.setString("/users/" + username + "/licensePlate", licensePlate);
+        //Firebase.setString("/users/" + username+"/vehicle", vehicle);
         Serial.println("Dados do Usuario Salvos!");
         request->redirect("/login");
       } else {
+        flagRegisterUser = false;
         Serial.println("--->Admin Inválido!Redirecionando para register.html");
         request->redirect("/register");
       }
@@ -356,48 +472,85 @@ void serverHandlers() {
       request->send(200, "application/json", "{\"status\":\"error\", \"message\": \"NÃO HÁ RESERVAS REGISTRADAS PARA O PARQUE 2\"}");
   });
 
-  // POST request para Cadastro de Usuario
   server.on("/reservation1", HTTP_GET, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("------> reservation1");
-    String username = request->getParam("username")->value();
-    String password = request->getParam("password")->value();
-    if (!isUser(username, password)) {
+
+    registerUsername = request->getParam("username")->value();
+    registerPassword = request->getParam("password")->value();
+    registerLicensePlate = request->getParam("licensePlate")->value();
+    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt() * 1000;
+
+    if (!isUser(registerUsername, registerPassword)) {
       Serial.println("######## Username e Senha Inválidos!\n ########");
-      //request->redirect("/home");
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
+    } else if (!isCarOwner(registerUsername, registerLicensePlate)) {
+      request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Este veiculo não pertence a este Usuário!\"}");
+      return;
+    }
+
+    if (!flagReserve1) {
+      flagRegisterReserve1 = true;
+      arduino.println("Y");
+      Serial.println("--->Reserva agendada!\nUsuario:" + registerUsername + "\nRedirecionando para ---> index.html");
+      request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
     } else {
-      if (flagReserve1 == false) {
-        flagReserve1 = true;
-        userReservation1 = username;
-        timerReservation1 = millis();
-        arduino.println("Y");
-        Serial.println("--->Reserva agendada!\nUsuario:" + userReservation1 + "\nRedirecionando para ---> index.html");
-        request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
-      } else
-        request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS!O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
-      //request->redirect("/home");
+      flagRegisterReserve1 = false;
+      Serial.println("Firebase diz que reserve1 time != 0");
+      request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS!O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
     }
   });
 
   server.on("/reservation2", HTTP_GET, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("------> reservation2");
-    String username = request->getParam("username")->value();
-    String password = request->getParam("password")->value();
-    if (!isUser(username, password)) {
+
+    registerUsername = request->getParam("username")->value();
+    registerPassword = request->getParam("password")->value();
+    registerLicensePlate = request->getParam("licensePlate")->value();
+    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt() * 1000;
+
+    if (!isUser(registerUsername, registerPassword)) {
       Serial.println("######## Username e Senha Inválidos!\n ########");
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
+    } else if (!isCarOwner(registerUsername, registerLicensePlate)) {
+      request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Este veiculo não pertence a este Usuário!\"}");
+      return;
+    }
+
+    if (!flagReserve2) {
+      flagRegisterReserve2 = true;
+      arduino.println("Y");
+      Serial.println("--->Reserva agendada!\nUsuario:" + registerUsername + "\nRedirecionando para ---> index.html");
+      request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
     } else {
-      if (flagReserve2 == false) {
-        flagReserve2 = true;
-        userReservation2 = username;
-        timerReservation2 = millis();
-        arduino.println("Z");
-        Serial.println("--->Reserva agendada!\nUsuario:" + userReservation2 + "\nRedirecionando para ---> index.html");
-        request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
-      } else
-        request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS! O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
+      flagRegisterReserve2 = false;
+      Serial.println("Firebase diz que reserve1 time != 0");
+      request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS!O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
     }
   });
+
+  // server.on("/reservation2", HTTP_GET, [](AsyncWebServerRequest *request) {
+  //   Serial.println("------> reservation2");
+  //   String username = request->getParam("username")->value();
+  //   String password = request->getParam("password")->value();
+  //   if (!isUser(username, password)) {
+  //     Serial.println("######## Username e Senha Inválidos!\n ########");
+  //     request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
+  //   } else {
+  //     if (flagReserve2 == false) {
+  //       flagReserve2 = true;
+  //       userReservation2 = username;
+  //       timerReservation2 = millis();
+  //       arduino.println("Z");
+  //       Serial.println("--->Reserva agendada!\nUsuario:" + userReservation2 + "\nRedirecionando para ---> index.html");
+  //       request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
+  //     } else
+  //       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS! O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
+  //   }
+  // });
+
+
   server.onNotFound(notFound);
   server.begin();
 }

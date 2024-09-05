@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-AO">
+<html lang="pt-ao">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Automa TIC(Erivelto Silva)">
+    <meta name="author" content="AutomaTIC(Erivelto Silva)">
     <title>Parque Control</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,36 +15,10 @@
 
     <link rel="shortcut icon" href="image-park.jpeg" type="image/x-icon">
     <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
     <link rel="stylesheet" href="index.css">
-
-    <style>
-        * {
-            font-family: "Roboto", sans-serif;
-            font-weight: 300;
-            font-style: normal;
-        }
-
-        body {
-            /* Define a imagem de fundo */
-            background-image: url('./image-park.jpeg');
-
-            /* Torna a imagem responsiva */
-            background-size: cover;
-
-            /* Garante que a imagem cubra toda a área da página */
-            background-repeat: no-repeat;
-
-            /* Centraliza a imagem */
-            background-position: center;
-
-            /* Define a cor de fundo transparente */
-            background-color: rgba(255, 255, 255, 0.5);
-            /* Ajuste os valores RGBA conforme necessário */
-
-            /* Adiciona um fallback para navegadores mais antigos */
-            background-blend-mode: overlay;
-        }
-    </style>
 </head>
 
 
@@ -55,7 +29,8 @@
     background-color: rgba(255, 255, 255, 0.5); 
     background-blend-mode: overlay; 
     background-attachment: fixed; ">
-    
+
+
     <main>
         <section id="parque1" class="mt-5">
             <h3 class="text-center text-white">Parque-1</h3>
@@ -144,7 +119,6 @@
             </div>
 
             <div class="row justify-content-evenly my-4">
-               
                 <div class="col-10 col-md-4 mt-4">
                     <div class="card h-100">
                         <img id="p2Image4" src="vaga-livre.png" class="card-img-top" alt="...">
@@ -190,18 +164,35 @@
                         <input type="hidden" class="form-control">
                         <div class="mb-3">
                             <label for="username1" class="col-form-label">Username:</label>
-                            <input type="text" class="form-control" name="username1" id="username1">
+                            <input type="text" class="form-control" name="username1" id="username1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="licensePlate1" class="col-form-label">Matricula da Viatura:</label>
+                            <input type="text" class="form-control" name="licensePlate1" id="licensePlate1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timeReserve1" class="col-form-label">Tempo da reserva(min):</label>
+                            <input type="number" class="form-control" name="timeReserve1" id="timeReserve1" required>
                         </div>
                         <div class="mb-3">
                             <label for="password1" class="col-form-label">Password:</label>
-                            <input type="password" class="form-control" name="password1" id="password1">
+                            <input type="password" class="form-control" name="password1" id="password1" required>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="btnReserve1" type="button" class="btn btn-primary"
-                        data-bs-dismiss="modal">Agendar</button>
+                    <button type="button" class="btn btn-danger flex gap-3 justify-content-center align-items-center"
+                        data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle-fill bg-danger"></i>
+                        Cancelar
+                    </button>
+
+                    <button id="btnReserve1" type="button"
+                        class="btn btn-primary flex justify-content-center align-content-center gap-3"
+                        data-bs-dismiss="modal">
+                        <i class="bi bi-floppy"></i>
+                        Agendar
+                    </button>
                 </div>
             </div>
         </div>
@@ -223,15 +214,32 @@
                             <input type="text" class="form-control" name="username2" id="username2" required>
                         </div>
                         <div class="mb-3">
+                            <label for="licensePlate2" class="col-form-label">Matricula da Viatura:</label>
+                            <input type="text" class="form-control" name="licensePlate2" id="licensePlate2" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timeReserve2" class="col-form-label">Tempo da reserva(min):</label>
+                            <input type="number" class="form-control" name="timeReserve2" id="timeReserve2" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="password2" class="col-form-label">Password:</label>
                             <input type="password" class="form-control" name="password2" id="password2" required>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="btnReserve2" type="button" class="btn btn-primary"
-                        data-bs-dismiss="modal">Agendar</button>
+                    <button type="button" class="btn btn-danger flex gap-3 justify-content-center align-items-center"
+                        data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle-fill bg-danger"></i>
+                        Cancelar
+                    </button>
+
+                    <button id="btnReserve2" type="button"
+                        class="btn btn-primary flex justify-content-center align-content-center gap-3"
+                        data-bs-dismiss="modal">
+                        <i class="bi bi-floppy"></i>
+                        Agendar
+                    </button>
                 </div>
             </div>
         </div>

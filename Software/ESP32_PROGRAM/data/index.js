@@ -45,16 +45,21 @@ btnOpenReservation2.addEventListener("click", () => {
 btnReserve1.addEventListener("click", () => {
     let username = document.getElementById("username1").value;
     let password = document.getElementById("password1").value;
-    sendReserve("/reservation1?username=" + username + "&password=" + password, username, password);
+    let licensePlate = document.getElementById("licensePlate1").value;
+    let timeReserve = Math.floor(Number(document.getElementById("timeReserve1").value)*60); // convert to seconds
+    sendReserve("/reservation1", username, password, licensePlate, timeReserve);
 });
 
 btnReserve2.addEventListener("click", () => {
     let username = document.getElementById("username2").value;
     let password = document.getElementById("password2").value;
-    sendReserve("/reservation2?username=" + username + "&password=" + password, username, password);
+    let licensePlate = document.getElementById("licensePlate2").value;
+    let timeReserve = Math.floor(Number(document.getElementById("timeReserve2").value)*60); // convert to seconds
+    sendReserve("/reservation2", username, password, licensePlate, timeReserve);
 })
 
-function sendReserve(url, username, password) {
+function sendReserve(baseUrl, username, password, licensePlate, timeReserve) {
+    let url = baseUrl + `?username=${username}&password=${password}&licensePlate=${licensePlate}&timeReserve=${timeReserve}`;    
     fetch(url)
         .then(resp => resp.json())
         .then((resp) => {
@@ -62,10 +67,12 @@ function sendReserve(url, username, password) {
             if (resp["status"] == "success") {
                 window.localStorage.setItem("username", username);
                 window.localStorage.setItem("password", password);
+                window.localStorage.setItem("licensePlate", licensePlate);
+                window.localStorage.setItem("timeReserve", timeReserve);
             }
             else
                 window.localStorage.clear();
-            alert(resp["message"]);
+            Swal.fire({title: resp["status"],text: resp["message"],icon: resp["status"]});
             cleanFields();
         })
         .catch(error => { console.error("## ERRO PEGANDO OS DADOS:" + error); })
@@ -75,8 +82,12 @@ function sendReserve(url, username, password) {
 function cleanFields() {
     document.getElementById("username1").value = "";
     document.getElementById("password1").value = "";
+    document.getElementById("licensePlate1").value = "";
+    document.getElementById("timeReserve1").value = "";
     document.getElementById("username2").value = "";
     document.getElementById("password2").value = "";
+    document.getElementById("licensePlate2").value = "";
+    document.getElementById("timeReserve2").value = "";
 }
 
 
@@ -88,7 +99,7 @@ function sendReq(url) {
             if (resp["status"] == "success")
                 console.log("Aberto!");
             else
-                alert(resp["message"]);
+                Swal.fire({title: "error",text: resp["message"],icon: "error"});
         })
         .catch(error => { console.error("## ERRO PEGANDO OS DADOS:" + error); })
 }
@@ -176,4 +187,3 @@ function setPark(numberPark, numberVaga, status, timeNow = new Date().toLocaleSt
         }
     }
 }
-
