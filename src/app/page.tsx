@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Lock, User } from "lucide-react";
-import Link from "next/link";
+import { LoginForm } from "@/components/login/form";
 
 export default async function Home() {
 
@@ -16,30 +14,7 @@ export default async function Home() {
                     </p>
                 </div>
 
-                <form className='lg:space-y-24 space-y-14'>
-                    <div className="space-y-8">
-                        <div className="h-14 px-5 bg-zinc-950 rounded-lg border border-zinc-800 flex items-center gap-2">
-                            <User className='text-zinc-400 size-5' />
-                            <input type="text" name="name" placeholder='Seu nome completo' className='placeholder:text-zinc-400 bg-transparent outline-none flex-1' />
-                        </div>
-
-                        <div className="space-y-5">
-
-                            <div className="h-14 px-5 bg-zinc-950 rounded-lg border border-zinc-800 flex items-center gap-2">
-                                <Lock className='text-zinc-400 size-5' />
-                                <input type="password" name="password" placeholder='Sua password' className='placeholder:text-zinc-400 bg-transparent outline-none flex-1' />
-                            </div>
-
-                            <p className="text-end text-xs lg:text-base">
-                                Ainda não tenho uma conta? <Link href={"/register"} className="text-lime-300 underline">Criar uma conta agora</Link>
-                            </p>
-                        </div>
-                    </div>
-
-                    <Button type="submit" className="w-full" >
-                        Entrar
-                    </Button>
-                </form>
+                <LoginForm />
             </div>
         </div>
     );
