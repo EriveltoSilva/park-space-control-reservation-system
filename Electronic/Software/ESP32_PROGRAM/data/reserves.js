@@ -25,7 +25,7 @@ let btnReserve2 = document.getElementById("btnReserve2");
 let btnOpenReservation2 = document.getElementById("btnOpenReservation2");
 
 
-window.addEventListener('load', () => { window.localStorage.clear(); setInterval(receiveData, 1000); });
+window.addEventListener('load', () => { window.localStorage.clear(); setInterval(receiveData, 2300); });
 
 
 btnOpenReservation1.addEventListener("click", () => {

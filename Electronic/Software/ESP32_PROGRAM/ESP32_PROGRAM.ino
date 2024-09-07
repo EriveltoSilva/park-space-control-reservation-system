@@ -21,28 +21,28 @@
 #define TXD2 17                                                                                            // TX da serial do ESP32      /////
 #define FIREBASE_HOST "https://park-space-control-system-default-rtdb.europe-west1.firebasedatabase.app/"  // substitua "Link_do_seu_banco_de_dados" pelo link do seu banco de dados
 #define FIREBASE_AUTH "oVTZYyRDQLbLFnYvYV1EIim5PqQTTLMpAvTUVvAa"                                           // substitua "Senha_do_seu_banco_de_dados" pela senha do seu banco de dados                                                                       /////
-#define TIME_BETWEEN_READS_IN_FRIREBASE 5000 //5segundos
+#define TIME_BETWEEN_READS_IN_FRIREBASE 5000                                                               //5segundos
 ///////////////////////////////////////////////////
 
 /////////////  NETWORK CONFIGURATIONS /////////////
 // #define SSID "PARK"           /////
 // #define PASSWORD "123456789"  /////
-#define SSID "NETHOUSE"           /////
+#define SSID "NETHOUSE"          /////
 #define PASSWORD "Eduanara3130"  /////
 ///////////////////////////////////////////////////
 
 ////////// VARIABLES USED IN THE PROJECT //////////
-bool flagReserve1 = false;                  /////
-bool flagReserve2 = false;                  /////
-String dataStored = "D*0*0*0*0*0*0*";       /////
-String userReservation1 = "";               /////
-String userReservation2 = "";               /////
-unsigned long int timerReservation1 = 0;    /////
-unsigned long int timerReservation2 = 0;    /////
+bool flagReserve1 = false;                   /////
+bool flagReserve2 = false;                   /////
+String dataStored = "D*0*0*0*0*0*0*";        /////
+String userReservation1 = "";                /////
+String userReservation2 = "";                /////
+unsigned long int timerReservation1 = 0;     /////
+unsigned long int timerReservation2 = 0;     /////
 unsigned long int endTimerReservation1 = 0;  /////
 unsigned long int endTimerReservation2 = 0;  /////
-unsigned long int timeMinute = 0;           /////
-unsigned long int timeDelay = 0;            /////
+unsigned long int timeMinute = 0;            /////
+unsigned long int timeDelay = 0;             /////
 ///////////////////////////////////////////////////
 
 ////////// VARIABLES USED IN REGISTER /////////////
@@ -55,6 +55,9 @@ String registerLicensePlate;
 String registerVehicleBrand;
 String registerPassword;
 int registerTimeReserve;
+
+String reservesFirebaseData = "";
+String usersFirebaseData = "";
 ///////////////////////////////////////////////////
 
 ///////////////  OBJECTS DEFINITIONS  /////////////
@@ -107,27 +110,25 @@ void loop() {
       Serial.println("--> RECEBIDO DO ARDUINO:" + dataStored);
       long time1 = 0;
       long time2 = 0;
-      if (flagReserve1)
-      {
+      if (flagReserve1) {
         time1 = (endTimerReservation1 - (millis() - timerReservation1)) / 1000;
-        if(time1<=0) //tempo de reserva acabou
+        if (time1 <= 0)  //tempo de reserva acabou
         {
-          time1=0;
+          time1 = 0;
           Firebase.setInt("/reserve1/time", 0);
-          flagReserve1=false;
+          flagReserve1 = false;
         }
       }
 
-      if (flagReserve2)
-      {
+      if (flagReserve2) {
         time2 = (endTimerReservation2 - (millis() - timerReservation2)) / 1000;
-        if(time2<=0) //tempo de reserva acabou
+        if (time2 <= 0)  //tempo de reserva acabou
         {
-          time2=0;
+          time2 = 0;
           Firebase.setInt("/reserve2/time", 0);
-          flagReserve2=false;
+          flagReserve2 = false;
         }
-      }  
+      }
 
       dataStored.replace("\n", "");
       dataStored.replace("\r", "");
@@ -143,6 +144,12 @@ void loop() {
     digitalWrite(LED, !digitalRead(LED));
   }
   delay(20);
+}
+
+
+void countReserves() {
+  // Serial.println("Reservas:" + String(Firebase.getString("/reserves")));
+  // Serial.println("Usuários:" + String(Firebase.getString("/users")));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -188,8 +195,10 @@ void readReserveStatusInFirebase() {
     timeMinute = millis();
     endTimerReservation1 = Firebase.getInt("/reserve1/time");
     endTimerReservation2 = Firebase.getInt("/reserve2/time");
-    flagReserve1 = endTimerReservation1 > 0? true: false; 
-    flagReserve2 = endTimerReservation2 > 0? true: false; 
+    flagReserve1 = endTimerReservation1 > 0 ? true : false;
+    flagReserve2 = endTimerReservation2 > 0 ? true : false;
+    reservesFirebaseData = Firebase.getString("/reserves");
+    usersFirebaseData = Firebase.getString("/users");
   }
 }
 
@@ -204,9 +213,9 @@ void registerToFirebase() {
     Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerLicensePlate+"|" +registerTimeReserve; 
+    String reserve = registerUsername + "|" + registerVehicleBrand + "|" + registerLicensePlate + "|" + registerTimeReserve;
     Firebase.pushString("/reserves/", reserve);
-    
+
     userReservation1 = registerUsername;
     timerReservation1 = millis();
     endTimerReservation1 = registerTimeReserve;
@@ -222,7 +231,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerLicensePlate+"|" + registerTimeReserve; 
+    String reserve = registerUsername + "|" + registerLicensePlate + "|" + registerTimeReserve;
     Firebase.pushString("/reserves/", reserve);
 
     userReservation2 = registerUsername;
@@ -232,7 +241,7 @@ void registerToFirebase() {
     return;
   }
 
-  if(flagRegisterUser) {
+  if (flagRegisterUser) {
     Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Registering User &&&&&&&&&&&&&&&&&&&&&&&&&&&&");
     flagRegisterUser = false;
     Firebase.setString("/users/" + registerUsername + "/password", registerPassword);
@@ -293,10 +302,10 @@ bool isUser(String username, String password) {
   return (passwordReturned.equals(password));
 }
 
-String getUsernameByReserveNumber(int num){
-  switch(num){
-    case 1: return Firebase.getString("reserve1/user");break;
-    case 2: return Firebase.getString("reserve2/user");break;
+String getUsernameByReserveNumber(int num) {
+  switch (num) {
+    case 1: return Firebase.getString("reserve1/user"); break;
+    case 2: return Firebase.getString("reserve2/user"); break;
   }
   return "";
 }
@@ -315,11 +324,117 @@ void cleanRegisterFieldS() {
   registerTimeReserve = 0;
 }
 
+String formatAsJSON(String input) {
+    // Inicia com uma chave de abertura
+    String output = "{";
+
+    int length = input.length();
+    int pos = 0;
+    bool firstPair = true;
+
+    while (pos < length) {
+        // Encontra a próxima vírgula (separador de pares chave-valor)
+        int commaIndex = input.indexOf(',', pos);
+        if (commaIndex == -1) {
+            commaIndex = length; // Último par
+        }
+
+        // Extrai o par chave-valor
+        String pair = input.substring(pos, commaIndex);
+
+        // Encontra o dois-pontos que separa a chave e o valor
+        int colonIndex = pair.indexOf(':');
+        if (colonIndex != -1) {
+            String key = pair.substring(0, colonIndex);
+            String value = pair.substring(colonIndex + 1);
+
+            // Remove espaços em branco extras
+            key.trim();
+            value.trim();
+
+            // Escapa barras invertidas e aspas em chave e valor, se necessário
+            key.replace("\\", "\\\\");
+            key.replace("\"", "\\\"");
+            value.replace("\\", "\\\\");
+            value.replace("\"", "\\\"");
+
+            // Envolve chave e valor em aspas duplas
+            if (!firstPair) {
+                output += ", ";
+            } else {
+                firstPair = false;
+            }
+            output += "\"" + key + "\": \"" + value + "\"";
+        }
+
+        // Move para o próximo par
+        pos = commaIndex + 1;
+    }
+
+    // Fecha a chave
+    output += "}";
+
+    return output;
+}
+
+String formatAsJson2(String input) {
+    String output = "{";
+
+    int start = 0;
+    int end = input.indexOf(',');
+
+    while (end != -1) {
+        String pair = input.substring(start, end);
+        int colonIndex = pair.indexOf(':');
+        if (colonIndex != -1) {
+            String key = pair.substring(0, colonIndex);
+            String value = pair.substring(colonIndex + 1);
+
+            // Remove any extra spaces
+            key.trim();
+            value.trim();
+
+            // Ensure keys and values are enclosed in double quotes
+            output += "\"" + key + "\": \"" + value + "\", ";
+        }
+
+        start = end + 1;
+        end = input.indexOf(',', start);
+    }
+
+    // Handle the last pair (after the last comma)
+    String pair = input.substring(start);
+    int colonIndex = pair.indexOf(':');
+    if (colonIndex != -1) {
+        String key = pair.substring(0, colonIndex);
+        String value = pair.substring(colonIndex + 1);
+
+        // Remove any extra spaces
+        key.trim();
+        value.trim();
+
+        // Ensure keys and values are enclosed in double quotes
+        output += "\"" + key + "\": \"" + value + "\"";
+    }
+
+    output += "}";
+
+    return output;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
-void serverHandlers() 
-{
+void serverHandlers() {
   server.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(SPIFFS, "/bootstrap.min.css", "text/css");
+  });
+
+  server.on("/estatisticas.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/estatisticas.js", "text/javascript");
+  });
+  
+  server.on("/reserves.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/reserves.js", "text/javascript");
   });
 
   server.on("/chart.min.js", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -332,17 +447,9 @@ void serverHandlers()
     request->send(SPIFFS, "/dashboard.html");
   });
 
-  server.on("/dashboard.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/dashboard.js", "text/javascript");
-  });
-
   server.on("/home", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("--------> home.html");
     request->send(SPIFFS, "/home.html");
-  });
-
-  server.on("/home.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/home.js", "text/javascript");
   });
 
   server.on("/login", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -386,7 +493,7 @@ void serverHandlers()
     Serial.println("-------->redirecionando para dashboard.html");
     request->redirect("/dashboard");
   });
-  
+
   server.on("/get-in", HTTP_POST, [](AsyncWebServerRequest *request) {
     esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("------> Req de /get-in do login.html");
@@ -435,12 +542,24 @@ void serverHandlers()
       }
     }
   });
-  
+
   server.on("/dados", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("--------> Dados:" + dataStored);
     String resp = "{\"status\":\"success\", \"data\":\"" + dataStored + "\"}";
     request->send(200, "application/json", resp);
   });
+
+  server.on("/reserves-estatisticas", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("--------> Estatisticas reserves:");
+    String resp = "{\"status\":\"success\", \"data\":" + formatAsJSON(reservesFirebaseData) + "}";
+    request->send(200, "application/json", resp);
+  });
+
+  server.on("/users-estatisticas", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("--------> Estatisticas Users:");
+    String resp = formatAsJSON(usersFirebaseData);
+    request->send(200, "application/json", resp);
+});
 
   server.on("/openReserve1", HTTP_GET, [](AsyncWebServerRequest *request) {
     esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
@@ -488,8 +607,7 @@ void serverHandlers()
     } else if (!isCarOwner(registerUsername, registerLicensePlate)) {
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Este veiculo não pertence a este Usuário!\"}");
       return;
-    }
-    else if (!flagReserve1) {
+    } else if (!flagReserve1) {
       flagRegisterReserve1 = true;
       arduino.println("Y");
       Serial.println("--->Reserva agendada!\nUsuario:" + registerUsername + "\nRedirecionando para ---> index.html");
