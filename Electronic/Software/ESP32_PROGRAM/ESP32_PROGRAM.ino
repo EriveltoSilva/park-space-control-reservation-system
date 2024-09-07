@@ -197,8 +197,8 @@ void readReserveStatusInFirebase() {
     endTimerReservation2 = Firebase.getInt("/reserve2/time");
     flagReserve1 = endTimerReservation1 > 0 ? true : false;
     flagReserve2 = endTimerReservation2 > 0 ? true : false;
-    reservesFirebaseData = Firebase.getString("/reserves");
-    usersFirebaseData = Firebase.getString("/users");
+    reservesFirebaseData = formatAsJSON(Firebase.getString("/reserves"));
+    usersFirebaseData = formatAsJSON(Firebase.getString("/users"));
   }
 }
 
@@ -377,7 +377,7 @@ String formatAsJSON(String input) {
     return output;
 }
 
-String formatAsJson2(String input) {
+String formatAsJSON2(String input) {
     String output = "{";
 
     int start = 0;
@@ -551,13 +551,13 @@ void serverHandlers() {
 
   server.on("/reserves-estatisticas", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("--------> Estatisticas reserves:");
-    String resp = "{\"status\":\"success\", \"data\":" + formatAsJSON(reservesFirebaseData) + "}";
+    String resp = reservesFirebaseData;
     request->send(200, "application/json", resp);
   });
 
   server.on("/users-estatisticas", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("--------> Estatisticas Users:");
-    String resp = formatAsJSON(usersFirebaseData);
+    Serial.println("--------> Estatisticas Users:"+usersFirebaseData);
+    String resp = usersFirebaseData;
     request->send(200, "application/json", resp);
 });
 
