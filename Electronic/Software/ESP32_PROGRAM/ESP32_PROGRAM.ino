@@ -147,11 +147,6 @@ void loop() {
 }
 
 
-void countReserves() {
-  // Serial.println("Reservas:" + String(Firebase.getString("/reserves")));
-  // Serial.println("Usuários:" + String(Firebase.getString("/users")));
-}
-
 //////////////////////////////////////////////////////////////////////////////
 bool initMyFS() {
   return (SPIFFS.begin(true));
@@ -198,7 +193,7 @@ void readReserveStatusInFirebase() {
     flagReserve1 = endTimerReservation1 > 0 ? true : false;
     flagReserve2 = endTimerReservation2 > 0 ? true : false;
     reservesFirebaseData = formatAsJSON(Firebase.getString("/reserves"));
-    usersFirebaseData = formatAsJSON(Firebase.getString("/users"));
+    usersFirebaseData = formatAsJSON(Firebase.getString("/userEst"));
   }
 }
 
@@ -247,6 +242,9 @@ void registerToFirebase() {
     Firebase.setString("/users/" + registerUsername + "/password", registerPassword);
     Firebase.setString("/users/" + registerUsername + "/licensePlate", registerLicensePlate);
     Firebase.setString("/users/" + registerUsername + "/vehicleBrand", registerVehicleBrand);
+
+    String user = registerUsername + "|" + registerLicensePlate + "|" + registerVehicleBrand;
+    Firebase.pushString("/userEst/", user);
     cleanRegisterFieldS();
   }
 }
@@ -325,101 +323,101 @@ void cleanRegisterFieldS() {
 }
 
 String formatAsJSON(String input) {
-    // Inicia com uma chave de abertura
-    String output = "{";
+  // Inicia com uma chave de abertura
+  String output = "{";
 
-    int length = input.length();
-    int pos = 0;
-    bool firstPair = true;
+  int length = input.length();
+  int pos = 0;
+  bool firstPair = true;
 
-    while (pos < length) {
-        // Encontra a próxima vírgula (separador de pares chave-valor)
-        int commaIndex = input.indexOf(',', pos);
-        if (commaIndex == -1) {
-            commaIndex = length; // Último par
-        }
-
-        // Extrai o par chave-valor
-        String pair = input.substring(pos, commaIndex);
-
-        // Encontra o dois-pontos que separa a chave e o valor
-        int colonIndex = pair.indexOf(':');
-        if (colonIndex != -1) {
-            String key = pair.substring(0, colonIndex);
-            String value = pair.substring(colonIndex + 1);
-
-            // Remove espaços em branco extras
-            key.trim();
-            value.trim();
-
-            // Escapa barras invertidas e aspas em chave e valor, se necessário
-            key.replace("\\", "\\\\");
-            key.replace("\"", "\\\"");
-            value.replace("\\", "\\\\");
-            value.replace("\"", "\\\"");
-
-            // Envolve chave e valor em aspas duplas
-            if (!firstPair) {
-                output += ", ";
-            } else {
-                firstPair = false;
-            }
-            output += "\"" + key + "\": \"" + value + "\"";
-        }
-
-        // Move para o próximo par
-        pos = commaIndex + 1;
+  while (pos < length) {
+    // Encontra a próxima vírgula (separador de pares chave-valor)
+    int commaIndex = input.indexOf(',', pos);
+    if (commaIndex == -1) {
+      commaIndex = length;  // Último par
     }
 
-    // Fecha a chave
-    output += "}";
+    // Extrai o par chave-valor
+    String pair = input.substring(pos, commaIndex);
 
-    return output;
+    // Encontra o dois-pontos que separa a chave e o valor
+    int colonIndex = pair.indexOf(':');
+    if (colonIndex != -1) {
+      String key = pair.substring(0, colonIndex);
+      String value = pair.substring(colonIndex + 1);
+
+      // Remove espaços em branco extras
+      key.trim();
+      value.trim();
+
+      // Escapa barras invertidas e aspas em chave e valor, se necessário
+      key.replace("\\", "\\\\");
+      key.replace("\"", "\\\"");
+      value.replace("\\", "\\\\");
+      value.replace("\"", "\\\"");
+
+      // Envolve chave e valor em aspas duplas
+      if (!firstPair) {
+        output += ", ";
+      } else {
+        firstPair = false;
+      }
+      output += "\"" + key + "\": \"" + value + "\"";
+    }
+
+    // Move para o próximo par
+    pos = commaIndex + 1;
+  }
+
+  // Fecha a chave
+  output += "}";
+
+  return output;
 }
 
 String formatAsJSON2(String input) {
-    String output = "{";
+  String output = "{";
 
-    int start = 0;
-    int end = input.indexOf(',');
+  int start = 0;
+  int end = input.indexOf(',');
 
-    while (end != -1) {
-        String pair = input.substring(start, end);
-        int colonIndex = pair.indexOf(':');
-        if (colonIndex != -1) {
-            String key = pair.substring(0, colonIndex);
-            String value = pair.substring(colonIndex + 1);
-
-            // Remove any extra spaces
-            key.trim();
-            value.trim();
-
-            // Ensure keys and values are enclosed in double quotes
-            output += "\"" + key + "\": \"" + value + "\", ";
-        }
-
-        start = end + 1;
-        end = input.indexOf(',', start);
-    }
-
-    // Handle the last pair (after the last comma)
-    String pair = input.substring(start);
+  while (end != -1) {
+    String pair = input.substring(start, end);
     int colonIndex = pair.indexOf(':');
     if (colonIndex != -1) {
-        String key = pair.substring(0, colonIndex);
-        String value = pair.substring(colonIndex + 1);
+      String key = pair.substring(0, colonIndex);
+      String value = pair.substring(colonIndex + 1);
 
-        // Remove any extra spaces
-        key.trim();
-        value.trim();
+      // Remove any extra spaces
+      key.trim();
+      value.trim();
 
-        // Ensure keys and values are enclosed in double quotes
-        output += "\"" + key + "\": \"" + value + "\"";
+      // Ensure keys and values are enclosed in double quotes
+      output += "\"" + key + "\": \"" + value + "\", ";
     }
 
-    output += "}";
+    start = end + 1;
+    end = input.indexOf(',', start);
+  }
 
-    return output;
+  // Handle the last pair (after the last comma)
+  String pair = input.substring(start);
+  int colonIndex = pair.indexOf(':');
+  if (colonIndex != -1) {
+    String key = pair.substring(0, colonIndex);
+    String value = pair.substring(colonIndex + 1);
+
+    // Remove any extra spaces
+    key.trim();
+    value.trim();
+
+    // Ensure keys and values are enclosed in double quotes
+    output += "\"" + key + "\": \"" + value + "\"";
+  }
+
+  output += "}";
+
+  return output;
 }
 
 
@@ -432,7 +430,7 @@ void serverHandlers() {
   server.on("/estatisticas.js", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(SPIFFS, "/estatisticas.js", "text/javascript");
   });
-  
+
   server.on("/reserves.js", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(SPIFFS, "/reserves.js", "text/javascript");
   });
@@ -544,7 +542,7 @@ void serverHandlers() {
   });
 
   server.on("/dados", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("--------> Dados:" + dataStored);
+    Serial.println("--------> Dados:");
     String resp = "{\"status\":\"success\", \"data\":\"" + dataStored + "\"}";
     request->send(200, "application/json", resp);
   });
@@ -556,10 +554,10 @@ void serverHandlers() {
   });
 
   server.on("/users-estatisticas", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("--------> Estatisticas Users:"+usersFirebaseData);
+    Serial.println("--------> Estatisticas Users:");
     String resp = usersFirebaseData;
     request->send(200, "application/json", resp);
-});
+  });
 
   server.on("/openReserve1", HTTP_GET, [](AsyncWebServerRequest *request) {
     esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
