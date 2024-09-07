@@ -3,6 +3,7 @@
     FOR: Barros.
     ISPB.
     CREATED AT: 28-05-2024.
+    LAST UPDATE AT: 07-09-2024.
 *************************************************/
 
 ////////////////// Libraries Used  ////////////////
@@ -25,10 +26,8 @@
 ///////////////////////////////////////////////////
 
 /////////////  NETWORK CONFIGURATIONS /////////////
-// #define SSID "PARK"           /////
-// #define PASSWORD "123456789"  /////
-#define SSID "NETHOUSE"          /////
-#define PASSWORD "Eduanara3130"  /////
+#define SSID "PARK"           /////
+#define PASSWORD "123456789"  /////
 ///////////////////////////////////////////////////
 
 ////////// VARIABLES USED IN THE PROJECT //////////

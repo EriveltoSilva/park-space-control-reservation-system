@@ -43,19 +43,19 @@ btnOpenReservation2.addEventListener("click", () => {
 });
 
 btnReserve1.addEventListener("click", () => {
-    let username = document.getElementById("username1").value;
-    let password = document.getElementById("password1").value;
-    let licensePlate = document.getElementById("licensePlate1").value;
-    let vehicleBrand = document.getElementById("vehicleBrand1").value;
+    let username = document.getElementById("username1").value.trim();
+    let password = document.getElementById("password1").value.trim();
+    let licensePlate = document.getElementById("licensePlate1").value.trim();
+    let vehicleBrand = document.getElementById("vehicleBrand1").value.trim();
     let timeReserve = Math.floor(Number(document.getElementById("timeReserve1").value)); // convert to seconds
     sendReserve("/reservation1", username, password, licensePlate, vehicleBrand,timeReserve);
 });
 
 btnReserve2.addEventListener("click", () => {
-    let username = document.getElementById("username2").value;
-    let password = document.getElementById("password2").value;
-    let licensePlate = document.getElementById("licensePlate2").value;
-    let vehicleBrand = document.getElementById("vehicleBrand2").value;
+    let username = document.getElementById("username2").value.trim();
+    let password = document.getElementById("password2").value.trim();
+    let licensePlate = document.getElementById("licensePlate2").value.trim();
+    let vehicleBrand = document.getElementById("vehicleBrand2").value.trim();
     let timeReserve = Math.floor(Number(document.getElementById("timeReserve2").value)); // convert to seconds
     sendReserve("/reservation2", username, password, licensePlate, vehicleBrand,timeReserve);
 })
