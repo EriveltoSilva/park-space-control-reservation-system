@@ -4,13 +4,13 @@
     ISPB.
     CREATED AT: 28-05-2024.
 *************************************************/
-#include "esp_task_wdt.h"
 
 ////////////////// Libraries Used  ////////////////
 #include <WiFi.h>                  /////
 #include "SPIFFS.h"                /////
 #include <AsyncTCP.h>              /////
 #include <ArduinoJson.h>           /////
+#include "esp_task_wdt.h"          /////
 #include <ESPAsyncWebServer.h>     /////
 #include <IOXhop_FirebaseESP32.h>  /////
 ///////////////////////////////////////////////////
@@ -20,13 +20,15 @@
 #define RXD2 16                                                                                            // RX da serial do ESP32      /////
 #define TXD2 17                                                                                            // TX da serial do ESP32      /////
 #define FIREBASE_HOST "https://park-space-control-system-default-rtdb.europe-west1.firebasedatabase.app/"  // substitua "Link_do_seu_banco_de_dados" pelo link do seu banco de dados
-#define FIREBASE_AUTH "oVTZYyRDQLbLFnYvYV1EIim5PqQTTLMpAvTUVvAa"                                           // substitua "Senha_do_seu_banco_de_dados" pela senha do seu banco de dados
-#define TIME_RESERVATION 120000                                                                            /////
+#define FIREBASE_AUTH "oVTZYyRDQLbLFnYvYV1EIim5PqQTTLMpAvTUVvAa"                                           // substitua "Senha_do_seu_banco_de_dados" pela senha do seu banco de dados                                                                       /////
+#define TIME_BETWEEN_READS_IN_FRIREBASE 5000 //5segundos
 ///////////////////////////////////////////////////
 
 /////////////  NETWORK CONFIGURATIONS /////////////
-#define SSID "PARK"           /////
-#define PASSWORD "123456789"  /////
+// #define SSID "PARK"           /////
+// #define PASSWORD "123456789"  /////
+#define SSID "NETHOUSE"           /////
+#define PASSWORD "Eduanara3130"  /////
 ///////////////////////////////////////////////////
 
 ////////// VARIABLES USED IN THE PROJECT //////////
@@ -37,8 +39,8 @@ String userReservation1 = "";               /////
 String userReservation2 = "";               /////
 unsigned long int timerReservation1 = 0;    /////
 unsigned long int timerReservation2 = 0;    /////
-unsigned long int endTimeReservation1 = 0;  /////
-unsigned long int endTimeReservation2 = 0;  /////
+unsigned long int endTimerReservation1 = 0;  /////
+unsigned long int endTimerReservation2 = 0;  /////
 unsigned long int timeMinute = 0;           /////
 unsigned long int timeDelay = 0;            /////
 ///////////////////////////////////////////////////
@@ -52,10 +54,7 @@ String registerUsername;
 String registerLicensePlate;
 String registerVehicleBrand;
 String registerPassword;
-
 int registerTimeReserve;
-
-
 ///////////////////////////////////////////////////
 
 ///////////////  OBJECTS DEFINITIONS  /////////////
@@ -87,77 +86,16 @@ void setup() {
   else
     Serial.println(" ## ERRO MONTANDO A PARTIÇÃO SPIFFS ##");
 
-  // inicia comunicação com firebase definido anteriormente
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   serverHandlers();
   Serial.println(" ##-------SISTEMA DE DOMÓTICA!--------##");
-  // esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
-}
-void verifyMinute() {
-  if (millis() - timeMinute > 60000) {
-    timeMinute = millis();
-    flagReserve1 = Firebase.getInt("/reserve1/time");
-    flagReserve2 = Firebase.getInt("/reserve2/time");
-  }
-}
-
-void verifyRegister() {
-  if (flagRegisterReserve1) {
-    Serial.println("&&&&&&&&&&&&&&&&&&&&&& register reservation1 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-    flagRegisterReserve1 = false;
-    flagReserve1 = true;
-    Firebase.setString("/reserve1/user", registerUsername);
-    Firebase.setInt("/reserve1/time", registerTimeReserve);
-    Firebase.setString("/reserve1/vehicleBrand", "toyota");
-    Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
-
-    Firebase.pushString("/reserves/user", registerUsername);
-    Firebase.pushInt("/reserves/time", registerTimeReserve);
-    Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
-    Firebase.pushString("/reserves/licensePlate", registerLicensePlate);
-
-    userReservation1 = registerUsername;
-    timerReservation1 = millis();
-    endTimeReservation1 = registerTimeReserve;
-    cleanRegisterFieldS();
-    return;
-  }
-  if (flagRegisterReserve2) {
-    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&& register reservation2 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-    flagRegisterReserve2 = false;
-    flagReserve2 = true;
-    Firebase.setString("/reserve2/user", registerUsername);
-    Firebase.setInt("/reserve2/time", registerTimeReserve);
-    Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
-    Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
-
-    Firebase.pushString("/reserves/user", registerUsername);
-    Firebase.pushInt("/reserves/time", registerTimeReserve);
-    Firebase.setString("/reserve1/vehicleBrand", "toyota");
-    Firebase.pushString("/reserves/licensePlate", registerLicensePlate);
-
-    userReservation2 = registerUsername;
-    timerReservation2 = millis();
-    endTimeReservation2 = registerTimeReserve;
-    cleanRegisterFieldS();
-    return;
-  }
-
-  if(flagRegisterUser) {
-    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& register user &&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-    flagRegisterUser = false;
-    Firebase.setString("/users/" + registerUsername + "/password", registerPassword);
-    Firebase.setString("/users/" + registerUsername + "/licensePlate", registerLicensePlate);
-    Firebase.setString("/users/" + registerUsername + "/vehicleBrand", registerVehicleBrand);
-    cleanRegisterFieldS();
-  }
 }
 
 /////////////////////////////////////////////////////////////////
 void loop() {
-  verifyMinute();
-  verifyTimeReservation();
-  verifyRegister();
+  readReserveStatusInFirebase();
+  verifyReserveExpiration();
+  registerToFirebase();
 
   if (millis() - timeDelay > 800) {
     timeDelay = millis();
@@ -171,7 +109,7 @@ void loop() {
       long time2 = 0;
       if (flagReserve1)
       {
-        time1 = (endTimeReservation1 - (millis() - timerReservation1)) / 1000;
+        time1 = (endTimerReservation1 - (millis() - timerReservation1)) / 1000;
         if(time1<=0) //tempo de reserva acabou
         {
           time1=0;
@@ -182,7 +120,7 @@ void loop() {
 
       if (flagReserve2)
       {
-        time2 = (endTimeReservation2 - (millis() - timerReservation2)) / 1000;
+        time2 = (endTimerReservation2 - (millis() - timerReservation2)) / 1000;
         if(time2<=0) //tempo de reserva acabou
         {
           time2=0;
@@ -207,10 +145,15 @@ void loop() {
   delay(20);
 }
 
-/////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+bool initMyFS() {
+  return (SPIFFS.begin(true));
+}
+
+//////////////////////////////////////////////////////////////////////////////
 void initConfig() {
   pinMode(LED, OUTPUT);
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(500);
   arduino.begin(9600, SERIAL_8N1, RXD2, TXD2);
   delay(500);
@@ -218,7 +161,7 @@ void initConfig() {
   delay(5000);
 }
 
-/////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 void wifiConfig() {
   if (WiFi.status() == WL_CONNECTED)
     return;
@@ -237,6 +180,85 @@ void wifiConfig() {
   }
   Serial.print("\nCONECTADO AO WIFI NO IP:");
   Serial.println(WiFi.localIP());
+}
+
+//////////////////////////////////////////////////////////////////////////////
+void readReserveStatusInFirebase() {
+  if (millis() - timeMinute > TIME_BETWEEN_READS_IN_FRIREBASE) {
+    timeMinute = millis();
+    endTimerReservation1 = Firebase.getInt("/reserve1/time");
+    endTimerReservation2 = Firebase.getInt("/reserve2/time");
+    flagReserve1 = endTimerReservation1 > 0? true: false; 
+    flagReserve2 = endTimerReservation2 > 0? true: false; 
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+void registerToFirebase() {
+  if (flagRegisterReserve1) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&& Registering Reservation1 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterReserve1 = false;
+    flagReserve1 = true;
+    Firebase.setString("/reserve1/user", registerUsername);
+    Firebase.setInt("/reserve1/time", registerTimeReserve);
+    Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
+    Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
+
+    String reserve = registerUsername + "|" + registerVehicleBrand +"|" + registerLicensePlate+"|" +registerTimeReserve; 
+    Firebase.pushString("/reserves/", reserve);
+    
+    userReservation1 = registerUsername;
+    timerReservation1 = millis();
+    endTimerReservation1 = registerTimeReserve;
+    cleanRegisterFieldS();
+    return;
+  }
+  if (flagRegisterReserve2) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&& Registering Reservation2 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterReserve2 = false;
+    flagReserve2 = true;
+    Firebase.setString("/reserve2/user", registerUsername);
+    Firebase.setInt("/reserve2/time", registerTimeReserve);
+    Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
+    Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
+
+    String reserve = registerUsername + "|" + registerVehicleBrand +"|" + registerLicensePlate+"|" +registerTimeReserve; 
+    Firebase.pushString("/reserves/", reserve);
+
+    userReservation2 = registerUsername;
+    timerReservation2 = millis();
+    endTimerReservation2 = registerTimeReserve;
+    cleanRegisterFieldS();
+    return;
+  }
+
+  if(flagRegisterUser) {
+    Serial.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Registering User &&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+    flagRegisterUser = false;
+    Firebase.setString("/users/" + registerUsername + "/password", registerPassword);
+    Firebase.setString("/users/" + registerUsername + "/licensePlate", registerLicensePlate);
+    Firebase.setString("/users/" + registerUsername + "/vehicleBrand", registerVehicleBrand);
+    cleanRegisterFieldS();
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+void verifyReserveExpiration() {
+  if (flagReserve1 && ((millis() - timerReservation1) > endTimerReservation1)) {
+    flagReserve1 = false;
+    userReservation1 = "";
+    arduino.println("y");
+    Firebase.setInt("reserve1/time", 0);
+    Serial.println("################################TEMPO DA RESERVA 1 EXPIROU ########################################");
+  }
+
+  if (flagReserve2 && ((millis() - timerReservation2) > endTimerReservation2)) {
+    flagReserve2 = false;
+    userReservation2 = "";
+    arduino.println("z");
+    Firebase.setInt("reserve2/time", 0);
+    Serial.println("################################TEMPO DA RESERVA 2 EXPIROU ########################################");
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -265,113 +287,108 @@ String receiveData() {
   return "";
 }
 
-////////////////////////////////////////////////////////////////////////
-bool initMyFS() {
-  return (SPIFFS.begin(true));
-}
-
-void verifyTimeReservation() {
-  if ((millis() - timerReservation1) > endTimeReservation1 && flagReserve1) {
-    flagReserve1 = false;
-    userReservation1 = "";
-    arduino.println("y");
-    Firebase.setInt("reserve1/time", 0);
-    Serial.println("################################TEMPO DA RESERVA 1 EXPIROU ########################################");
-  }
-
-  if ((millis() - timerReservation2) > 120000 && flagReserve2) {
-    flagReserve2 = false;
-    userReservation2 = "";
-    arduino.println("z");
-    Serial.println("################################TEMPO DA RESERVA 2 EXPIROU ########################################");
-  }
-}
-
+//////////////////////////////////////////////////////////////////////////////
 bool isUser(String username, String password) {
   String passwordReturned = Firebase.getString("/users/" + username + "/password");
   return (passwordReturned.equals(password));
 }
 
+String getUsernameByReserveNumber(int num){
+  switch(num){
+    case 1: return Firebase.getString("reserve1/user");break;
+    case 2: return Firebase.getString("reserve2/user");break;
+  }
+  return "";
+}
+//////////////////////////////////////////////////////////////////////////////
 bool isCarOwner(String username, String licensePlate) {
   String licensePlateReturned = Firebase.getString("/users/" + username + "/licensePlate");
   return (licensePlateReturned.equals(licensePlate));
 }
 
-
-void saveUserFirebase(String username, String password) {
-  Firebase.setString("/users/" + username, password);
-}
-
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 void cleanRegisterFieldS() {
   registerUsername = "";
-  registerLicensePlate = "";
   registerVehicleBrand = "";
+  registerLicensePlate = "";
   registerPassword = "";
   registerTimeReserve = 0;
 }
 
-////////////////////////////////////////////////////////////////////////
-void serverHandlers() {
-  // Route to load bootstrap.min.css file
+//////////////////////////////////////////////////////////////////////////////
+void serverHandlers() 
+{
   server.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(SPIFFS, "/bootstrap.min.css", "text/css");
   });
-  // Route to load bootstrap.bundle.min.js file
-  server.on("/bootstrap.bundle.min.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/bootstrap.bundle.min.js", "text/javascript");
-  });
-  // Route to load image-park.jpeg file
-  server.on("/image-park.jpeg", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/image-park.jpeg", "image/jpeg");
+
+  server.on("/chart.min.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/chart.min.js", "text/javascript");
   });
 
-  // Route to load vaga-livre.png file
-  server.on("/vaga-livre.png", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/vaga-livre.png", "image/png");
-  });
-  // Route to load im.png file
-  server.on("/im.jpg", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/im.jpg", "image/jpg");
+  // Routes
+  server.on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("--------> dashboard.html");
+    request->send(SPIFFS, "/dashboard.html");
   });
 
-
-  // Route to load vaga-ocupada.png file
-  server.on("/vaga-ocupada.png", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/vaga-ocupada.png", "image/png");
-  });
-  // Route to load index.css file
-  server.on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/index.css", "text/css");
-  });
-  // Route to load index.js file
-  server.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/index.js", "text/javascript");
-  });
-  // Route to load index.css file
-  server.on("/login.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/login.css", "text/css");
-  });
-  // Route to load login.js file
-  server.on("/login.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/login.js", "text/javascript");
+  server.on("/dashboard.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/dashboard.js", "text/javascript");
   });
 
-  /*--------------------------ENDPOINS---------------------------*/
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("-------->redirecionando para login.html");
-    request->redirect("/login");
+  server.on("/home", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("--------> home.html");
+    request->send(SPIFFS, "/home.html");
   });
 
-  // Route for login / web page
+  server.on("/home.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/home.js", "text/javascript");
+  });
+
   server.on("/login", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("--------> login.html");
     request->send(SPIFFS, "/login.html");
   });
 
-  // POST request para login
+  server.on("/main.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/main.js", "text/javascript");
+  });
+
+  server.on("/register", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("--------> register.html");
+    request->send(SPIFFS, "/register.html");
+  });
+
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/style.css", "text/css");
+  });
+
+  server.on("/user.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/user.png", "image/png");
+  });
+
+  server.on("/vaga-livre.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/vaga-livre.png", "image/png");
+  });
+
+  server.on("/vaga-ocupada.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/vaga-ocupada.png", "image/png");
+  });
+
+
+  /*--------------------------ENDPOINS---------------------------*/
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("-------->redirecionando para login.html");
+    request->redirect("/login");
+  });
+
+  server.on("/admin", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("-------->redirecionando para dashboard.html");
+    request->redirect("/dashboard");
+  });
+  
   server.on("/get-in", HTTP_POST, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("------> Req de /get-in do login.html");
     if (!(request->hasParam("username", true) && request->hasParam("password", true))) {
       Serial.println("---> Erro... Parametros de Login Incompletos!\nRedirecionando para ----> login.html");
@@ -380,8 +397,8 @@ void serverHandlers() {
       String username = request->getParam("username", true)->value();
       String password = request->getParam("password", true)->value();
       if (username.equals("admin") && password.equals("otlevire")) {
-        Serial.println("--->Username e Senha de Admin Válidos!\nRedirecionando para ----> register.html");
-        request->redirect("/register");
+        Serial.println("--->Username e Senha de Admin Válidos!\nRedirecionando para ----> dashboard.html");
+        request->redirect("/dashboard");
       } else {
         if (!isUser(username, password)) {
           Serial.println("--->Username e Senha Inválidos!\nRedirecionando para ---> login.html");
@@ -394,8 +411,8 @@ void serverHandlers() {
     }
   });
 
-  // POST request para Cadastro de Usuario
   server.on("/make-register", HTTP_POST, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("---- post --> Req de /register do register.html");
     if (!(request->hasParam("username", true) && request->hasParam("userPassword", true) && request->hasParam("adminPassword", true) && request->hasParam("vehicleBrand", true) && request->hasParam("licensePlate", true))) {
       Serial.println("---> Erro... Parametros de Registro Incompletos!\nRedirecionando para ----> register.html");
@@ -407,15 +424,9 @@ void serverHandlers() {
       registerPassword = request->getParam("userPassword", true)->value();
       String adminPassword = request->getParam("adminPassword", true)->value();
 
-      // String vehicle = vehicleBrand + " | " + licensePlate;
-
       if (adminPassword.equals("otlevire")) {
-        Serial.println("--->Admin Válido! Salvando dados do novo usuario no Firebase...");
+        Serial.println("--->Admin Válido! Salvando dados do novo usuário no Firebase...");
         flagRegisterUser = true;
-        // Firebase.setString("/users/" + username + "/password", userPassword);
-        // Firebase.setString("/users/" + username + "/licensePlate", licensePlate);
-        //Firebase.setString("/users/" + username+"/vehicle", vehicle);
-        Serial.println("Dados do Usuario Salvos!");
         request->redirect("/login");
       } else {
         flagRegisterUser = false;
@@ -424,31 +435,19 @@ void serverHandlers() {
       }
     }
   });
-
-  // Route for root / web page
-  server.on("/register", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("--------> register.html");
-    request->send(SPIFFS, "/register.html");
-  });
-  // Route for root / web page
-  server.on("/home", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("--------> Index.html");
-    request->send(SPIFFS, "/index.html");
-  });
-
+  
   server.on("/dados", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //dataStored = "D*1*1*1*0*0*0*0*0*";
-
     Serial.println("--------> Dados:" + dataStored);
     String resp = "{\"status\":\"success\", \"data\":\"" + dataStored + "\"}";
     request->send(200, "application/json", resp);
   });
 
   server.on("/openReserve1", HTTP_GET, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("--------> openReserve1:");
     if (flagReserve1) {
       String username = request->getParam("username")->value();
-      if (username.equals(userReservation1)) {
+      if (username.equals(getUsernameByReserveNumber(1))) {
         Serial.println("======= ABRINDO=============================");
         arduino.println("A");
         request->send(200, "application/json", "{\"status\":\"success\"}");
@@ -459,10 +458,11 @@ void serverHandlers() {
   });
 
   server.on("/openReserve2", HTTP_GET, [](AsyncWebServerRequest *request) {
+    esp_task_wdt_delete(NULL);  // Remove o watchdog do loopTask
     Serial.println("--------> openReserve2:");
     if (flagReserve2) {
       String username = request->getParam("username")->value();
-      if (username.equals(userReservation2)) {
+      if (username.equals(getUsernameByReserveNumber(2))) {
         Serial.println("======= ABRINDO=============================");
         arduino.println("D");
         request->send(200, "application/json", "{\"status\":\"success\"}");
@@ -479,17 +479,17 @@ void serverHandlers() {
     registerUsername = request->getParam("username")->value();
     registerPassword = request->getParam("password")->value();
     registerLicensePlate = request->getParam("licensePlate")->value();
-    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt() * 1000;
+    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt();
 
     if (!isUser(registerUsername, registerPassword)) {
       Serial.println("######## Username e Senha Inválidos!\n ########");
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
+      return;
     } else if (!isCarOwner(registerUsername, registerLicensePlate)) {
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Este veiculo não pertence a este Usuário!\"}");
       return;
     }
-
-    if (!flagReserve1) {
+    else if (!flagReserve1) {
       flagRegisterReserve1 = true;
       arduino.println("Y");
       Serial.println("--->Reserva agendada!\nUsuario:" + registerUsername + "\nRedirecionando para ---> index.html");
@@ -508,17 +508,23 @@ void serverHandlers() {
     registerUsername = request->getParam("username")->value();
     registerPassword = request->getParam("password")->value();
     registerLicensePlate = request->getParam("licensePlate")->value();
-    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt() * 1000;
+    registerTimeReserve = (request->getParam("timeReserve")->value()).toInt();
+
+    Serial.println(registerUsername);
+    Serial.println(registerPassword);
+    Serial.println(registerLicensePlate);
+    Serial.println(registerTimeReserve);
 
     if (!isUser(registerUsername, registerPassword)) {
       Serial.println("######## Username e Senha Inválidos!\n ########");
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
+      return;
     } else if (!isCarOwner(registerUsername, registerLicensePlate)) {
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Este veiculo não pertence a este Usuário!\"}");
       return;
     }
 
-    if (!flagReserve2) {
+    else if (!flagReserve2) {
       flagRegisterReserve2 = true;
       arduino.println("Y");
       Serial.println("--->Reserva agendada!\nUsuario:" + registerUsername + "\nRedirecionando para ---> index.html");
@@ -529,26 +535,6 @@ void serverHandlers() {
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS!O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
     }
   });
-
-  // server.on("/reservation2", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   Serial.println("------> reservation2");
-  //   String username = request->getParam("username")->value();
-  //   String password = request->getParam("password")->value();
-  //   if (!isUser(username, password)) {
-  //     Serial.println("######## Username e Senha Inválidos!\n ########");
-  //     request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
-  //   } else {
-  //     if (flagReserve2 == false) {
-  //       flagReserve2 = true;
-  //       userReservation2 = username;
-  //       timerReservation2 = millis();
-  //       arduino.println("Z");
-  //       Serial.println("--->Reserva agendada!\nUsuario:" + userReservation2 + "\nRedirecionando para ---> index.html");
-  //       request->send(200, "application/json", "{\"status\":\"success\", \"message\":\"RESERVADO COM SUCESSO!\"}");
-  //     } else
-  //       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS! O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
-  //   }
-  // });
 
 
   server.onNotFound(notFound);
