@@ -226,7 +226,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerLicensePlate + "|" + registerTimeReserve + "|" + "Parque2";
+    String reserve = registerUsername + "|" + registerVehicleBrand + "|" + registerLicensePlate + "|" + registerTimeReserve + "|" + "Parque2";
     Firebase.pushString("/reserves/", reserve);
 
     userReservation2 = registerUsername;

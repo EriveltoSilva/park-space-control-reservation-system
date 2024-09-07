@@ -318,7 +318,18 @@
                                     <input type="text" class="form-control bg-white" name="licensePlate2"
                                         id="licensePlate2" required>
                                 </div>
-
+                                <div class="mb-3">
+                                    <label for="timeReserve2" class="col-form-label">Tempo da reserva(min):</label>
+                                    <select class="form-control" name="timeReserve2" id="timeReserve2">
+                                        <option value="15000">15s</option>
+                                        <option value="30000" selected>30s</option>
+                                        <option value="45000">45s</option>
+                                        <option value="60000">1min</option>
+                                        <option value="90000">1min:30s</option>
+                                        <option value="105000">1min:45s</option>
+                                        <option value="120000">2min</option>
+                                    </select>
+                                </div>
                                 <div class="mb-3">
                                     <label for="password2" class="col-form-label">Password:</label>
                                     <input type="password" class="form-control bg-white" name="password2" id="password2"
@@ -363,7 +374,6 @@
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="chart.min.js"></script>
     <script src="main.js"></script>
     <script src="reserves.js"></script>
 </body>
