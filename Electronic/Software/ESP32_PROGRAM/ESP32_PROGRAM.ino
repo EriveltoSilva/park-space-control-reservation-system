@@ -204,7 +204,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerVehicleBrand +"|" + registerLicensePlate+"|" +registerTimeReserve; 
+    String reserve = registerUsername + "|" + registerLicensePlate+"|" +registerTimeReserve; 
     Firebase.pushString("/reserves/", reserve);
     
     userReservation1 = registerUsername;
@@ -222,7 +222,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerVehicleBrand +"|" + registerLicensePlate+"|" +registerTimeReserve; 
+    String reserve = registerUsername + "|" + registerLicensePlate+"|" + registerTimeReserve; 
     Firebase.pushString("/reserves/", reserve);
 
     userReservation2 = registerUsername;
@@ -510,11 +510,6 @@ void serverHandlers()
     registerLicensePlate = request->getParam("licensePlate")->value();
     registerTimeReserve = (request->getParam("timeReserve")->value()).toInt();
 
-    Serial.println(registerUsername);
-    Serial.println(registerPassword);
-    Serial.println(registerLicensePlate);
-    Serial.println(registerTimeReserve);
-
     if (!isUser(registerUsername, registerPassword)) {
       Serial.println("######## Username e Senha Inválidos!\n ########");
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"Usuário Não Encontrado!\"}");
@@ -535,7 +530,6 @@ void serverHandlers()
       request->send(200, "application/json", "{\"status\":\"error\", \"message\":\"UPS!O ESPACO JÁ SE ENCONTRA RESERVADO!\"}");
     }
   });
-
 
   server.onNotFound(notFound);
   server.begin();
