@@ -46,20 +46,22 @@ btnReserve1.addEventListener("click", () => {
     let username = document.getElementById("username1").value;
     let password = document.getElementById("password1").value;
     let licensePlate = document.getElementById("licensePlate1").value;
+    let vehicleBrand = document.getElementById("vehicleBrand1").value;
     let timeReserve = Math.floor(Number(document.getElementById("timeReserve1").value)); // convert to seconds
-    sendReserve("/reservation1", username, password, licensePlate, timeReserve);
+    sendReserve("/reservation1", username, password, licensePlate, vehicleBrand,timeReserve);
 });
 
 btnReserve2.addEventListener("click", () => {
     let username = document.getElementById("username2").value;
     let password = document.getElementById("password2").value;
     let licensePlate = document.getElementById("licensePlate2").value;
+    let vehicleBrand = document.getElementById("vehicleBrand2").value;
     let timeReserve = Math.floor(Number(document.getElementById("timeReserve2").value)); // convert to seconds
-    sendReserve("/reservation2", username, password, licensePlate, timeReserve);
+    sendReserve("/reservation2", username, password, licensePlate, vehicleBrand,timeReserve);
 })
 
-function sendReserve(baseUrl, username, password, licensePlate, timeReserve) {
-    let url = baseUrl + `?username=${username}&password=${password}&licensePlate=${licensePlate}&timeReserve=${timeReserve}`;    
+function sendReserve(baseUrl, username, password, licensePlate, vehicleBrand, timeReserve) {
+    let url = baseUrl + `?username=${username}&password=${password}&licensePlate=${licensePlate}&vehicleBrand=${vehicleBrand}&timeReserve=${timeReserve}`;    
     fetch(url)
         .then(resp => resp.json())
         .then((resp) => {
@@ -68,6 +70,7 @@ function sendReserve(baseUrl, username, password, licensePlate, timeReserve) {
                 window.localStorage.setItem("username", username);
                 window.localStorage.setItem("password", password);
                 window.localStorage.setItem("licensePlate", licensePlate);
+                window.localStorage.setItem("vehicleBrand", vehicleBrand);
                 window.localStorage.setItem("timeReserve", timeReserve);
             }
             else
@@ -83,10 +86,12 @@ function cleanFields() {
     document.getElementById("username1").value = "";
     document.getElementById("password1").value = "";
     document.getElementById("licensePlate1").value = "";
+    document.getElementById("vehicleBrand1").value = "";
     document.getElementById("timeReserve1").value = "";
     document.getElementById("username2").value = "";
     document.getElementById("password2").value = "";
     document.getElementById("licensePlate2").value = "";
+    document.getElementById("vehicleBrand2").value = "";
     document.getElementById("timeReserve2").value = "";
 }
 

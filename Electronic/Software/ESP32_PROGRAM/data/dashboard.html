@@ -91,7 +91,7 @@
 
             <div class="container-fluid pt-4 px-4">
                 <div class="row g-4">
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
                             <i class="fa fa-chart-line fa-3x text-primary"></i>
                             <div class="ms-3">
@@ -100,7 +100,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
                             <i class="fa fa-chart-bar fa-3x text-primary"></i>
                             <div class="ms-3">
@@ -109,10 +109,29 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">T. Reservas P1</p>
+                                <h6 class="mb-0" id="totalP1">0</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">T. Reservas P2</p>
+                                <h6 class="mb-0" id="totalP2">0</h6>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <section class="container-fluid pt-4 px-4">
+                <h2 class="text-primary">Parque 1</h2>
                 <div class="row g-4">
                     <div class="col-sm-12 col-md-6 col-lg-4">
                         <div class="bg-secondary text-center rounded p-4">
@@ -173,6 +192,7 @@
 
 
             <section class="container-fluid pt-4 px-4">
+                <h2 class="text-primary">Parque 2</h2>
                 <div class="row g-4">
                     <div class="col-sm-12 col-md-6 col-lg-4">
                         <div class="bg-secondary text-center rounded p-4">
@@ -249,6 +269,21 @@
                                         required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="vehicleBrand1" class="col-form-label">Marca da Viatura:</label>
+                                    <select class="form-control" name="vehicleBrand1" id="vehicleBrand1" required>
+                                        <option value="TOYOTA" selected>TOYOTA</option>
+                                        <option value="HYUNDAI">HYUNDAI</option>
+                                        <option value="KIA">KIA</option>
+                                        <option value="FORD">FORD</option>
+                                        <option value="HONDA">HONDA</option>
+                                        <option value="CHEVROLET">CHEVROLET</option>
+                                        <option value="NISSAN">NISSAN</option>
+                                        <option value="VOLKSWAGEN">VOLKSWAGEN</option>
+                                        <option value="BMW">BMW</option>
+                                        <option value="MERCEDES">MERCEDES</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="licensePlate1" class="col-form-label">Matricula da Viatura:</label>
                                     <input type="text" class="form-control bg-white" name="licensePlate1"
                                         id="licensePlate1" required>
@@ -311,22 +346,26 @@
                                         required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="vehicleBrand2" class="col-form-label">Marca da Viatura:</label>
+                                    <select class="form-control" name="vehicleBrand2" id="vehicleBrand2" required>
+                                        <option value="TOYOTA" selected>TOYOTA</option>
+                                        <option value="HYUNDAI">HYUNDAI</option>
+                                        <option value="KIA">KIA</option>
+                                        <option value="FORD">FORD</option>
+                                        <option value="HONDA">HONDA</option>
+                                        <option value="CHEVROLET">CHEVROLET</option>
+                                        <option value="NISSAN">NISSAN</option>
+                                        <option value="VOLKSWAGEN">VOLKSWAGEN</option>
+                                        <option value="BMW">BMW</option>
+                                        <option value="MERCEDES">MERCEDES</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="licensePlate2" class="col-form-label">Matricula da Viatura:</label>
                                     <input type="text" class="form-control bg-white" name="licensePlate2"
                                         id="licensePlate2" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="timeReserve2" class="col-form-label">Tempo da reserva(min):</label>
-                                    <select class="form-control" name="timeReserve2" id="timeReserve2">
-                                        <option value="15000">15s</option>
-                                        <option value="30000" selected>30s</option>
-                                        <option value="45000">45s</option>
-                                        <option value="60000">1min</option>
-                                        <option value="90000">1min:30s</option>
-                                        <option value="105000">1min:45s</option>
-                                        <option value="120000">2min</option>
-                                    </select>
-                                </div>
+
                                 <div class="mb-3">
                                     <label for="password2" class="col-form-label">Password:</label>
                                     <input type="password" class="form-control bg-white" name="password2" id="password2"
@@ -393,6 +432,7 @@
                                     <th scope="col">Marca da Viatura</th>
                                     <th scope="col">Matricula da Viatura</th>
                                     <th scope="col">Tempo(s)</th>
+                                    <th scope="col">Parque</th>
                                 </tr>
                             </thead>
                             <tbody id="tableReserves">
@@ -402,6 +442,7 @@
                                     <td>Toyota</td>
                                     <td>BG-12-12</td>
                                     <td>1000</td>
+                                    <td>Parque1</td>
                                 </tr>
                             </tbody>
                         </table>

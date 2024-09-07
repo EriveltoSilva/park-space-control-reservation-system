@@ -208,7 +208,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve1/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve1/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerVehicleBrand + "|" + registerLicensePlate + "|" + registerTimeReserve;
+    String reserve = registerUsername + "|" + registerVehicleBrand + "|" + registerLicensePlate + "|" + registerTimeReserve + "|" + "Parque1";
     Firebase.pushString("/reserves/", reserve);
 
     userReservation1 = registerUsername;
@@ -226,7 +226,7 @@ void registerToFirebase() {
     Firebase.setString("/reserve2/vehicleBrand", registerVehicleBrand);
     Firebase.setString("/reserve2/licensePlate", registerLicensePlate);
 
-    String reserve = registerUsername + "|" + registerLicensePlate + "|" + registerTimeReserve;
+    String reserve = registerUsername + "|" + registerLicensePlate + "|" + registerTimeReserve + "|" + "Parque2";
     Firebase.pushString("/reserves/", reserve);
 
     userReservation2 = registerUsername;
@@ -596,6 +596,7 @@ void serverHandlers() {
     registerUsername = request->getParam("username")->value();
     registerPassword = request->getParam("password")->value();
     registerLicensePlate = request->getParam("licensePlate")->value();
+    registerVehicleBrand = request->getParam("vehicleBrand")->value();
     registerTimeReserve = (request->getParam("timeReserve")->value()).toInt();
 
     if (!isUser(registerUsername, registerPassword)) {
@@ -624,6 +625,7 @@ void serverHandlers() {
     registerUsername = request->getParam("username")->value();
     registerPassword = request->getParam("password")->value();
     registerLicensePlate = request->getParam("licensePlate")->value();
+    registerVehicleBrand = request->getParam("vehicleBrand")->value();
     registerTimeReserve = (request->getParam("timeReserve")->value()).toInt();
 
     if (!isUser(registerUsername, registerPassword)) {
